@@ -1,0 +1,114 @@
+select * from coffee_shop;
+
+--Create a new column: transaction_time_bucket to group transactions into 30- minute intervals (Or it can be 1 hour intervals)
+
+SELECT 
+    store_id,
+    store_location,
+    transaction_time,
+    CASE 
+        WHEN transaction_time BETWEEN '06:00:00' AND '09:59:59' THEN 'Morning'
+        WHEN transaction_time BETWEEN '10:00:00' AND '11:59:59' THEN 'Brunch '
+        WHEN transaction_time BETWEEN '12:00:00' AND '14:59:59' THEN 'Midday'
+        WHEN transaction_time BETWEEN '15:00:00' AND '18:59:59' THEN 'Evening'
+        ELSE 'Night'
+    END AS time_bucket
+FROM coffee_shop;
+
+SELECT COUNT(transaction_id) number_of_sales,
+        COUNT(PRODUCT_ID) AS UNIQUE_PRODUCTS_SOLD
+        SUM(transaction_qty * TO_NUMBER(REPLACE(UNIT_PRICE, ',', '.'))) TOTAL AMOUNT,
+PRODUCT_CATEGORY,
+PRODUCT_DETAIL,
+PRODUCT_TYPE,
+STORE_LOCATION,
+   CASE 
+        WHEN transaction_time BETWEEN '06:00:00' AND '09:59:59' THEN 'Morning'
+        WHEN transaction_time BETWEEN '10:00:00' AND '11:59:59' THEN 'Brunch '
+        WHEN transaction_time BETWEEN '12:00:00' AND '14:59:59' THEN 'Midday'
+        WHEN transaction_time BETWEEN '15:00:00' AND '18:59:59' THEN 'Evening'
+        ELSE 'Night'
+    END AS time_bucket
+FROM coffee_shop
+GROUP BY ALL;
+
+--total revenue per store 
+
+SELECT 
+    store_id,
+    store_location,
+    SUM(TRY_TO_NUMBER(REPLACE(unit_price, ',', '.')) * transaction_qty) AS total_revenue
+FROM coffee_shop
+GROUP BY store_id, store_location
+ORDER BY total_revenue DESC;
+
+--revenue by product category 
+
+SELECT 
+    product_category,
+    SUM(TRY_TO_NUMBER(REPLACE(unit_price, ',', '.')) * transaction_qty) AS total_revenue
+FROM coffee_shop
+GROUP BY product_category
+ORDER BY total_revenue DESC;
+
+--total_amount = unit_price * transaction_qty
+
+SELECT 
+    transaction_id,
+    transaction_date,
+    transaction_time,
+    store_id,
+    store_location,
+    product_id,
+    product_category,
+    product_type,
+    product_detail,
+    transaction_qty,
+    TRY_TO_NUMBER(REPLACE(unit_price, ',', '.')) AS unit_price_clean,
+    TRY_TO_NUMBER(REPLACE(unit_price, ',', '.')) * transaction_qty AS total_amount
+FROM coffee_shop;
+
+--add total amount column 
+
+ALTER TABLE coffee_shop
+ADD COLUMN total_amount NUMBER(10,2);
+
+
+ 
+-- Total units sold by product type
+
+SELECT product_type, SUM(transaction_qty) AS total_units_sold
+FROM coffee_shop
+GROUP BY product_type
+ORDER BY total_units_sold DESC;
+
+SELECT 
+  product_type, 
+  DATE(transaction_time) AS transaction_date, 
+  SUM(total_amount) AS revenue
+FROM COFFEE_SHOP
+GROUP BY product_type, transaction_date
+ORDER BY product_type, transaction_date;
+
+ALTER TABLE coffee_shop
+DROP COLUMN total_amount;
+
+
+
+SELECT transaction_date,
+COUNT(transaction_id) number_of_sales,
+        COUNT(PRODUCT_ID) AS UNIQUE_PRODUCTS_SOLD,
+       sum(transaction_qty * to_number(replace(unit_price, ',', '.'))) total_amount,
+PRODUCT_CATEGORY,
+PRODUCT_DETAIL,
+PRODUCT_TYPE,
+STORE_LOCATION,
+   CASE 
+        WHEN transaction_time BETWEEN '06:00:00' AND '09:59:59' THEN 'Morning'
+        WHEN transaction_time BETWEEN '10:00:00' AND '11:59:59' THEN 'Brunch '
+        WHEN transaction_time BETWEEN '12:00:00' AND '14:59:59' THEN 'Midday'
+        WHEN transaction_time BETWEEN '15:00:00' AND '18:59:59' THEN 'Evening'
+        ELSE 'Night'
+    END AS time_bucket
+FROM coffee_shop
+GROUP BY ALL;
